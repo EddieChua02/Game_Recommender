@@ -6,7 +6,7 @@ from scipy.sparse import load_npz
 # Load Dataset
 @st.cache_data
 def load_data():
-    return pd.read_csv("steam.csv")  # Replace with your dataset path
+    return pd.read_csv(r"C:\Users\Eddie Chua\OneDrive\桌面\AI\P8\steam.csv")
 
 # Load Precomputed Sparse Model
 @st.cache_data
