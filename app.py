@@ -1,43 +1,31 @@
 import streamlit as st
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+import joblib
+from scipy.sparse import load_npz
 
 # Load Dataset
-@st.cache
+@st.cache_data
 def load_data():
-    # Replace with your actual dataset path
-    metadata = pd.read_csv("games_metadata.csv")
-    return metadata
+    return pd.read_csv("steam.csv")  # Replace with your dataset path
 
-# Build Recommendation System
-def build_recommender(metadata):
-    # Ensure dataset has the necessary columns
-    metadata['combined_features'] = metadata['description'] + ' ' + metadata['genres']
-
-    # Create TF-IDF matrix
-    tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(metadata['combined_features'].fillna(''))
-
-    # Compute cosine similarity matrix
-    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-
-    # Index mapping for game names
-    indices = pd.Series(metadata.index, index=metadata['name']).drop_duplicates()
-
-    return cosine_sim, indices
+# Load Precomputed Sparse Model
+@st.cache_data
+def load_model():
+    sparse_cosine_sim = joblib.load('cosine_sim_sparse.joblib')  # Load sparse matrix
+    indices = joblib.load('indices.joblib')  # Load indices
+    return sparse_cosine_sim, indices
 
 # Recommend Games
 def recommend_games(game_name, cosine_sim, indices, metadata):
     if game_name not in indices:
         return ["Game not found in the dataset."]
-
+    
     idx = indices[game_name]
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = cosine_sim[idx].toarray().flatten()
+    sim_scores = sorted(enumerate(sim_scores), key=lambda x: x[1], reverse=True)
     sim_scores = sim_scores[1:6]  # Top 5 recommendations
     game_indices = [i[0] for i in sim_scores]
-
+    
     return metadata['name'].iloc[game_indices].tolist()
 
 # Streamlit App
@@ -45,7 +33,7 @@ st.title("Game Recommender System")
 st.sidebar.title("Input")
 
 metadata = load_data()
-cosine_sim, indices = build_recommender(metadata)
+cosine_sim, indices = load_model()
 
 game_name = st.sidebar.selectbox("Select a game:", metadata['name'].sort_values().unique())
 
