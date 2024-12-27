@@ -4,13 +4,16 @@ import streamlit as st
 st.title("Game Recommender System")
 st.sidebar.title("Input")
 
-# Placeholder for game selection
-game_name = st.sidebar.selectbox("Select a game:", ["Game 1", "Game 2", "Game 3"])
+# User input for the game name
+game_name = st.text_input("Enter a game name:")
 
-# Placeholder for recommendation button
-if st.sidebar.button("Recommend"):
-    # Display dummy recommendations
-    st.write("### Recommended Games:")
-    recommendations = ["Recommended Game 1", "Recommended Game 2", "Recommended Game 3"]
-    for rec in recommendations:
-        st.write(f"- {rec}")
+# Submit button
+if st.button("Submit"):
+    if game_name:
+        # Display dummy recommendations
+        st.write(f"### Recommended Games for '{game_name}':")
+        recommendations = ["Recommended Game 1", "Recommended Game 2", "Recommended Game 3"]
+        for rec in recommendations:
+            st.write(f"- {rec}")
+    else:
+        st.write("Please enter a game name before submitting.")
